@@ -13,3 +13,4 @@ git config --global user.name "Your Name"
 git config --global user.email "youremail@yourdomain.com"
 ```
  - Faire Ctrl+Shift+P et taper Git: Clone et copier l'URL du GitHub. Ensuite sélectionner le fichier dans lequel on veut coder
+ hello
