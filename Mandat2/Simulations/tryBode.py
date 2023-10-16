@@ -5,10 +5,13 @@ import matplotlib.pyplot as plt
 def transfer_function(f, f0, Q):
     w0 = 2 * np.pi * f0
     w = 2 * np.pi * f
-    return w / (w0**2 - w**2 + 1j * w * w0 / Q)
+    x= w/w0
+    # return w / (w0**2 - w**2 + 1j * w * w0 / Q)
+    return 1/(1+1.j*Q*(x-1/(x+1e-16)))
+    # return 1/(1+x/Q+x**2)
 
 # Generate an input signal
-t = np.linspace(0, 1, 1000, endpoint=False)
+t = np.linspace(1, 2, 1000, endpoint=False)
 input_signal = np.sin(2 * np.pi * 5 * t) + 0.5 * np.sin(2 * np.pi * 50 * t)
 
 # Apply the Fourier transform to the input signal
@@ -20,7 +23,7 @@ frequencies = np.fft.fftfreq(len(t), d=t[1]-t[0])
 
 # Parameters of transfer function
 Q = 30
-f0 = 50
+f0 = 30
 
 # Calculate transfer function norm and phase
 transNorm = np.absolute(transfer_function(frequencies, f0, Q))
@@ -40,12 +43,11 @@ plt.plot(t, np.real(output_signal), label='Output Signal')
 plt.xlabel('Time')
 plt.ylabel('Amplitude')
 plt.legend()
-plt.show()
 
 # Plot the Bode diagrams
 plt.figure(figsize=(12, 6))
 plt.subplot(2, 1, 1)
-plt.scatter(frequencies, transNorm, s=10)
+plt.loglog(frequencies, transNorm, s=10)
 plt.xscale('log')
 plt.yscale('log')
 plt.title('Magnitude Response of RLC Band-pass Filter')
@@ -60,6 +62,14 @@ plt.title('Phase Response of RLC Band-pass Filter' )
 plt.xlabel('Frequency (Hz)')
 plt.ylabel('Phase (radians)')
 plt.grid(which='both', axis='both')
-
 plt.tight_layout()
+
+# Plot the signals in freq space
+plt.figure()
+plt.plot(frequencies, np.absolute(input_signal_freq), label='Input Signal')
+plt.plot(frequencies, np.absolute(output_signal_freq),label='Output Signal')
+plt.xlabel('Frequency (Hz)')
+plt.ylabel('Amplitude')
+plt.legend()
+
 plt.show()
