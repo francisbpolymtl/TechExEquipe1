@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy.signal import chirp
 
 # Define the transfer function in terms of the central frequency and quality factor
 def transfer_function(f, f0, Q):
@@ -47,7 +48,7 @@ plt.legend()
 # Plot the Bode diagrams
 plt.figure(figsize=(12, 6))
 plt.subplot(2, 1, 1)
-plt.loglog(frequencies, transNorm, s=10)
+plt.loglog(frequencies, transNorm)
 plt.xscale('log')
 plt.yscale('log')
 plt.title('Magnitude Response of RLC Band-pass Filter')
