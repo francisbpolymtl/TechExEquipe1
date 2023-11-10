@@ -1,0 +1,83 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Définir les paramètres du système optique
+sampling_interval = 1e-3  # Intervalle d'échantillonnage en mètres, Résolution de l'image 
+wavelength = 500e-9  # Longueur d'onde en mètres
+grating_period = 600e-3  # Période du réseau de diffraction en mètres
+focal_length_1 = 50e-2
+focal_length_2 = 30e-2
+beta = 0.1  # Exemple, je ne sais pas encore comment le définir
+
+# Position initiale du rayon lumineux
+initial_position = 0  # Ajustable
+
+# Créer une séquence discrète représentant le rayon lumineux (impulsion à la position "initial_position" et zéro partout ailleurs.)
+x_values = np.arange(-10, 10, sampling_interval) # Correspond à la largeur de l'image 
+initial_wave = np.zeros_like(x_values)
+initial_wave[np.abs(x_values - initial_position) < 1e-3] = 1  # Dirac delta-like profile
+
+# # Cas d'une fente rectangulaire à la source
+# # Paramètres de la fente rectangulaire
+# fente_width = 2  # Largeur de la fente en unités de longueur 
+# # Créer une séquence discrète représentant la fente rectangulaire
+# x_values = np.arange(-20, 20, sampling_interval)
+# initial_wave = np.zeros_like(x_values)
+# initial_wave[np.abs(x_values) < fente_width / 2] = 1  # Profil rectangulaire
+
+
+# Propagation de la lumière à travers le système optique
+
+# 1. Transformation de Fourier pour les lentilles
+def lens_transform(input_signal, focal_length, wavelength, sampling_interval):
+    spatial_frequencies = np.fft.fftfreq(len(input_signal), sampling_interval)
+    lens_transfer_function = np.exp(1j * np.pi * wavelength * focal_length * spatial_frequencies**2)
+    output_signal = np.fft.fft(input_signal) * lens_transfer_function
+    return np.fft.ifft(output_signal)
+
+
+# 2. Transformation de Fourier pour le réseau de diffraction
+def grating_transform(input_signal, grating_period, wavelength, sampling_interval, beta):
+
+    spatial_frequencies = np.fft.fftfreq(len(input_signal), sampling_interval)
+    grating_transfer_function = np.sinc(spatial_frequencies * grating_period) * np.exp(1j * beta * spatial_frequencies)
+    output_signal = np.fft.fft(input_signal) * grating_transfer_function
+    return np.fft.ifft(output_signal)
+
+
+# Propagation à travers la première lentille
+wave_after_lens1 = lens_transform(initial_wave, focal_length_1, wavelength, sampling_interval)
+
+# Propagation à travers le réseau de diffraction
+wave_after_grating = grating_transform(wave_after_lens1, grating_period, wavelength, sampling_interval, beta)
+
+# Propagation à travers la deuxième lentille
+wave_after_lens2 = lens_transform(wave_after_grating, focal_length_2, wavelength, sampling_interval)
+
+
+# Calcul de la transformée de Fourier du champ optique à la sortie du deuxième élément optique
+fourier_transform = np.fft.fft(wave_after_lens2)
+
+# Calcul des fréquences spatiales associées à la transformée de Fourier
+spatial_frequencies = np.fft.fftfreq(len(wave_after_lens2), sampling_interval)
+
+# Identification des pics de diffraction
+seuil = 0.3  # Seuil de détection à ajuster
+peaks = (np.fft.fft(wave_after_lens2))
+peak_positions = spatial_frequencies[np.abs(peaks) > seuil]
+
+# Affichage du plan d'imagerie
+plt.figure(figsize=(10, 6))
+plt.plot(spatial_frequencies, np.abs(fourier_transform))
+plt.scatter(peak_positions, np.abs(peaks[np.abs(peaks) > seuil]), color='red', label='Pics de diffraction')
+plt.title('Plan d\'imagerie avec Pics de diffraction')
+plt.xlabel('Fréquences spatiales')
+plt.ylabel('Amplitude de la transformée de Fourier')
+plt.legend()
+plt.show()
+
+
+# # Générer une figure représentant le spectre de la lumière captée par la caméra
+
+# # Afficher la figure
+# plt.show()
